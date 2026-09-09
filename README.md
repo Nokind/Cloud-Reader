@@ -1,7 +1,8 @@
 # Cloud Reader · 私人云端阅读器
-一个部署在 Cloudflare Pages 上的多用户电子书阅读器。每位用户拥有独立书库、阅读进度、书签、笔记和本地缓存，适合个人与家庭自建阅读空间。
-<img width="1849" height="912" alt="image" src="https://github.com/user-attachments/assets/34cec399-cb86-4539-8330-ac0ba20fa663" />
 
+一个部署在 Cloudflare Pages 上的多用户电子书阅读器。每位用户拥有独立书库、阅读进度、书签、笔记和本地缓存，适合个人与家庭自建阅读空间。
+
+**当前版本：v1.2.2**。管理员账号密码现在可直接通过 Pages 环境变量配置，并保留 TXT 白屏修复。
 
 ## 功能
 
@@ -18,11 +19,11 @@
 
 准备一个 Cloudflare 账号，以及本项目的 **v1.2.2 部署包**。首次启用 R2 时按 Cloudflare 控制台提示完成开通。
 
-| 资源               | 用途          | 建议资源名称               | 程序要求的绑定名称 |
-| ---------------- | ----------- | -------------------- | --------- |
-| Cloudflare Pages | 运行网站和后端     | `cloud-reader`       | —         |
-| D1 数据库           | 用户、书目、阅读记录等 | `cloud-reader-db`    | `DB`      |
-| R2 存储桶           | 书籍原文件       | `cloud-reader-books` | `BOOKS`   |
+| 资源 | 用途 | 建议资源名称 | 程序要求的绑定名称 |
+| --- | --- | --- | --- |
+| Cloudflare Pages | 运行网站和后端 | `cloud-reader` | — |
+| D1 数据库 | 用户、书目、阅读记录等 | `cloud-reader-db` | `DB` |
+| R2 存储桶 | 书籍原文件 | `cloud-reader-books` | `BOOKS` |
 
 资源名称可以自定义，**绑定名称必须区分大小写，准确填写 `DB` 和 `BOOKS`**。R2 存储桶保持私有，无需开启公开访问，也不需要为本部署方式申请 R2 API 密钥。
 
@@ -62,10 +63,10 @@ index.html
 
 进入刚创建的 **Pages 项目 → Settings → Bindings → Add**，在生产环境添加：
 
-| 绑定类型        | Variable name | 选择的资源       |
-| ----------- | ------------- | ----------- |
-| D1 database | `DB`          | 第 1 步创建的数据库 |
-| R2 bucket   | `BOOKS`       | 第 1 步创建的存储桶 |
+| 绑定类型 | Variable name | 选择的资源 |
+| --- | --- | --- |
+| D1 database | `DB` | 第 1 步创建的数据库 |
+| R2 bucket | `BOOKS` | 第 1 步创建的存储桶 |
 
 `DB`、`BOOKS` 是资源绑定，不能用同名普通文本变量代替。绑定配置与重新部署要求可参见 [Pages Bindings 官方说明](https://developers.cloudflare.com/pages/functions/bindings/)。
 
@@ -73,13 +74,13 @@ index.html
 
 进入 **Settings → Variables and Secrets**，为生产环境添加：
 
-| 名称                | 类型     | 是否必填        | 说明                           |
-| ----------------- | ------ | ----------- | ---------------------------- |
-| `ADMIN_USERNAME`  | 文本变量   | 新站点必填       | 管理员用户名，3–32 位英文字母、数字、下划线或连字符 |
-| `ADMIN_PASSWORD`  | Secret | 新站点必填       | 管理员登录密码，8–256 位              |
-| `DEPLOY_KEY`      | Secret | 是           | 独立随机长字符串，作为服务端密钥长期保留         |
-| `PASSWORD_PEPPER` | Secret | 否，建议首次部署时设置 | 独立随机长字符串，用于密码哈希；设置后应长期保留     |
-| `SITE_QUOTA_GB`   | 文本变量   | 否           | 站点应用容量上限，默认 `8`；可设置为正数       |
+| 名称 | 类型 | 是否必填 | 说明 |
+| --- | --- | --- | --- |
+| `ADMIN_USERNAME` | 文本变量 | 新站点必填 | 管理员用户名，3–32 位英文字母、数字、下划线或连字符 |
+| `ADMIN_PASSWORD` | Secret | 新站点必填 | 管理员登录密码，8–256 位 |
+| `DEPLOY_KEY` | Secret | 是 | 独立随机长字符串，作为服务端密钥长期保留 |
+| `PASSWORD_PEPPER` | Secret | 否，建议首次部署时设置 | 独立随机长字符串，用于密码哈希；设置后应长期保留 |
+| `SITE_QUOTA_GB` | 文本变量 | 否 | 站点应用容量上限，默认 `8`；可设置为正数 |
 
 建议使用密码管理器分别生成至少 32 位随机字符串。不要将实际密钥提交到 GitHub。`DEPLOY_KEY` 由你自己设置，不是 Cloudflare API Token，也不是管理员登录密码。
 
@@ -127,12 +128,12 @@ Cloud-Reader.v1.2.2/
 
 构建配置：
 
-| 配置项    | 填写内容                  |
-| ------ | --------------------- |
-| 生产分支   | 实际使用的分支，例如 `main`     |
-| 框架预设   | `None`                |
-| 根目录    | 仓库根目录                 |
-| 构建命令   | 留空                    |
+| 配置项 | 填写内容 |
+| --- | --- |
+| 生产分支 | 实际使用的分支，例如 `main` |
+| 框架预设 | `None` |
+| 根目录 | 仓库根目录 |
+| 构建命令 | 留空 |
 | 构建输出目录 | `Cloud-Reader.v1.2.2` |
 
 如果将三个部署文件直接放在仓库根目录，构建输出目录使用 `.`。
@@ -159,12 +160,12 @@ Cloud-Reader.v1.2.2/
 
 入口：**设置与数据 → 云服务**，或直接访问 `/cloud`。
 
-| 服务                            | Pages 项目中需配置                                  | 接入说明                          |
-| ----------------------------- | --------------------------------------------- | ----------------------------- |
-| OneDrive                      | `ONEDRIVE_CLIENT_ID`、`ONEDRIVE_CLIENT_SECRET` | 注册 Microsoft OAuth 应用后授权      |
-| Google Drive                  | `GOOGLE_CLIENT_ID`、`GOOGLE_CLIENT_SECRET`     | 启用 Drive API，创建 Web OAuth 客户端 |
-| WebDAV / Nextcloud / ownCloud | `WEBDAV_ALLOWED_HOSTS`                        | 在网页填写 HTTPS WebDAV 地址与凭据      |
-| 百度网盘 / 阿里云盘                   | `WEBDAV_ALLOWED_HOSTS`                        | 先准备挂载对应网盘的可写 WebDAV 服务        |
+| 服务 | Pages 项目中需配置 | 接入说明 |
+| --- | --- | --- |
+| OneDrive | `ONEDRIVE_CLIENT_ID`、`ONEDRIVE_CLIENT_SECRET` | 注册 Microsoft OAuth 应用后授权 |
+| Google Drive | `GOOGLE_CLIENT_ID`、`GOOGLE_CLIENT_SECRET` | 启用 Drive API，创建 Web OAuth 客户端 |
+| WebDAV / Nextcloud / ownCloud | `WEBDAV_ALLOWED_HOSTS` | 在网页填写 HTTPS WebDAV 地址与凭据 |
+| 百度网盘 / 阿里云盘 | `WEBDAV_ALLOWED_HOSTS` | 先准备挂载对应网盘的可写 WebDAV 服务 |
 
 OAuth 客户端密钥应保存为 Secret，配置更改后重新部署。回调地址必须与实际站点域名完全一致：
 
