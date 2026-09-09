@@ -1,6 +1,7 @@
-#Cloud Reader · 私人云端阅读器
-
+# Cloud Reader · 私人云端阅读器
 一个部署在 Cloudflare Pages 上的多用户电子书阅读器。每位用户拥有独立书库、阅读进度、书签、笔记和本地缓存，适合个人与家庭自建阅读空间。
+<img width="1849" height="912" alt="image" src="https://github.com/user-attachments/assets/34cec399-cb86-4539-8330-ac0ba20fa663" />
+
 
 **当前版本：v1.2.1**。已修复旧缓存与新阅读模块混用导致的 TXT 白屏问题。
 
