@@ -3,8 +3,6 @@
 <img width="1849" height="912" alt="image" src="https://github.com/user-attachments/assets/34cec399-cb86-4539-8330-ac0ba20fa663" />
 
 
-**当前版本：v1.2.1**。已修复旧缓存与新阅读模块混用导致的 TXT 白屏问题。
-
 ## 功能
 
 - **多用户独立空间**：管理员创建用户、管理账号和容量配额；书籍与阅读记录按账号隔离。
@@ -18,13 +16,13 @@
 
 ## 部署前准备
 
-准备一个 Cloudflare 账号，以及本项目的 **v1.2.1 部署包**。首次启用 R2 时按 Cloudflare 控制台提示完成开通。
+准备一个 Cloudflare 账号，以及本项目的 **v1.2.2 部署包**。首次启用 R2 时按 Cloudflare 控制台提示完成开通。
 
-| 资源 | 用途 | 建议资源名称 | 程序要求的绑定名称 |
-| --- | --- | --- | --- |
-| Cloudflare Pages | 运行网站和后端 | `cloud-reader` | — |
-| D1 数据库 | 用户、书目、阅读记录等 | `cloud-reader-db` | `DB` |
-| R2 存储桶 | 书籍原文件 | `cloud-reader-books` | `BOOKS` |
+| 资源               | 用途          | 建议资源名称               | 程序要求的绑定名称 |
+| ---------------- | ----------- | -------------------- | --------- |
+| Cloudflare Pages | 运行网站和后端     | `cloud-reader`       | —         |
+| D1 数据库           | 用户、书目、阅读记录等 | `cloud-reader-db`    | `DB`      |
+| R2 存储桶           | 书籍原文件       | `cloud-reader-books` | `BOOKS`   |
 
 资源名称可以自定义，**绑定名称必须区分大小写，准确填写 `DB` 和 `BOOKS`**。R2 存储桶保持私有，无需开启公开访问，也不需要为本部署方式申请 R2 API 密钥。
 
@@ -54,7 +52,7 @@ _routes.json
 index.html
 ```
 
-不能多套一层 `Cloud-Reader.v1.2.1/` 文件夹；不要上传整个开发工作区或 `node_modules`。
+不能多套一层 `Cloud-Reader.v1.2.2/` 文件夹；不要上传整个开发工作区或 `node_modules`。
 
 本项目采用 Pages Advanced Mode，后端入口为 `_worker.js`。Cloudflare 支持通过控制台直接上传这一形式的 Worker。参见 [Direct Upload 官方说明](https://developers.cloudflare.com/pages/get-started/direct-upload/) 和 [Advanced Mode 官方说明](https://developers.cloudflare.com/pages/functions/advanced-mode/)。
 
@@ -64,10 +62,10 @@ index.html
 
 进入刚创建的 **Pages 项目 → Settings → Bindings → Add**，在生产环境添加：
 
-| 绑定类型 | Variable name | 选择的资源 |
-| --- | --- | --- |
-| D1 database | `DB` | 第 1 步创建的数据库 |
-| R2 bucket | `BOOKS` | 第 1 步创建的存储桶 |
+| 绑定类型        | Variable name | 选择的资源       |
+| ----------- | ------------- | ----------- |
+| D1 database | `DB`          | 第 1 步创建的数据库 |
+| R2 bucket   | `BOOKS`       | 第 1 步创建的存储桶 |
 
 `DB`、`BOOKS` 是资源绑定，不能用同名普通文本变量代替。绑定配置与重新部署要求可参见 [Pages Bindings 官方说明](https://developers.cloudflare.com/pages/functions/bindings/)。
 
@@ -75,11 +73,13 @@ index.html
 
 进入 **Settings → Variables and Secrets**，为生产环境添加：
 
-| 名称 | 类型 | 是否必填 | 说明 |
-| --- | --- | --- | --- |
-| `DEPLOY_KEY` | Secret | 是 | 自行生成并保存的随机长字符串，首次创建管理员时作为初始化密钥输入 |
-| `PASSWORD_PEPPER` | Secret | 否，建议首次部署时设置 | 独立随机长字符串，用于密码哈希；设置后应长期保留 |
-| `SITE_QUOTA_GB` | 文本变量 | 否 | 站点应用容量上限，默认 `8`；可设置为正数 |
+| 名称                | 类型     | 是否必填        | 说明                           |
+| ----------------- | ------ | ----------- | ---------------------------- |
+| `ADMIN_USERNAME`  | 文本变量   | 新站点必填       | 管理员用户名，3–32 位英文字母、数字、下划线或连字符 |
+| `ADMIN_PASSWORD`  | Secret | 新站点必填       | 管理员登录密码，8–256 位              |
+| `DEPLOY_KEY`      | Secret | 是           | 独立随机长字符串，作为服务端密钥长期保留         |
+| `PASSWORD_PEPPER` | Secret | 否，建议首次部署时设置 | 独立随机长字符串，用于密码哈希；设置后应长期保留     |
+| `SITE_QUOTA_GB`   | 文本变量   | 否           | 站点应用容量上限，默认 `8`；可设置为正数       |
 
 建议使用密码管理器分别生成至少 32 位随机字符串。不要将实际密钥提交到 GitHub。`DEPLOY_KEY` 由你自己设置，不是 Cloudflare API Token，也不是管理员登录密码。
 
@@ -97,15 +97,13 @@ index.html
 https://你的项目名.pages.dev/
 ```
 
-### 6. 初始化管理员
+### 6. 登录管理员
 
-1. 打开站点，进入首次初始化页面。
-2. 设置管理员用户名和登录密码。
-3. 在初始化密钥栏填写第 4 步保存的 `DEPLOY_KEY`。
-4. 提交创建管理员，并妥善保存页面提供的恢复码。
-5. 登录后导入一本 TXT 或 EPUB，确认能正常阅读。
+保存 `ADMIN_USERNAME` 和 `ADMIN_PASSWORD` 并重新部署后，打开网站。程序会自动创建管理员，无需在网页输入初始化密钥。使用这两个变量中的账号密码直接登录，然后导入一本 TXT 或 EPUB 检查阅读功能。
 
-无需设置额外的本地离线密码。日常使用只需要站点账号密码。
+如需改名或重置管理员密码，在 Pages 修改对应变量并重新部署；下一次访问登录状态接口或登录时会应用配置，旧管理员会话随凭据变更失效。管理员用户 ID、书籍和阅读记录不变。如果用户名已被其他用户使用，会提示配置冲突，不会将该用户提升为管理员。
+
+升级旧站点时配置这两个变量，会接管原始管理员账号；不配置则保留旧账号登录方式。新站点必须同时配置两项，网页初始化接口已关闭。
 
 ### 7. 创建其他用户
 
@@ -121,7 +119,7 @@ https://你的项目名.pages.dev/
 
 ```text
 README.md
-Cloud-Reader.v1.2.1/
+Cloud-Reader.v1.2.2/
   _worker.js
   _routes.json
   index.html
@@ -129,17 +127,17 @@ Cloud-Reader.v1.2.1/
 
 构建配置：
 
-| 配置项 | 填写内容 |
-| --- | --- |
-| 生产分支 | 实际使用的分支，例如 `main` |
-| 框架预设 | `None` |
-| 根目录 | 仓库根目录 |
-| 构建命令 | 留空 |
-| 构建输出目录 | `Cloud-Reader.v1.2.1` |
+| 配置项    | 填写内容                  |
+| ------ | --------------------- |
+| 生产分支   | 实际使用的分支，例如 `main`     |
+| 框架预设   | `None`                |
+| 根目录    | 仓库根目录                 |
+| 构建命令   | 留空                    |
+| 构建输出目录 | `Cloud-Reader.v1.2.2` |
 
 如果将三个部署文件直接放在仓库根目录，构建输出目录使用 `.`。
 
-这里部署的是已经生成的发布文件，不需要在 Cloudflare 中执行开发工作区的补丁构建脚本。创建项目后，仍需按上文添加 `DB`、`BOOKS` 和 `DEPLOY_KEY`，然后重新部署并初始化管理员。
+这里部署的是已经生成的发布文件，不需要在 Cloudflare 中执行开发工作区的补丁构建脚本。创建项目后，仍需按上文添加 `DB`、`BOOKS` 和 `DEPLOY_KEY`，然后重新部署并直接登录管理员。
 
 之后推送生产分支即可触发部署。升级到新的版本目录时，记得同步修改构建输出目录。详情参见 [Cloudflare Git 集成说明](https://developers.cloudflare.com/pages/get-started/git-integration/)。
 
@@ -147,11 +145,11 @@ Cloud-Reader.v1.2.1/
 
 ## 部署后检查
 
-- 首页能进入初始化或登录页面。
+- 首页能进入登录页面。
 - 管理员可登录、导入书籍并打开阅读。
 - 刷新网页后，书籍仍存在。
 - 第二个账号看不到第一个账号的书库。
-- 访问 `/api/v1/version`，应看到 `version` 为 `cloud-reader-v1.2.1`。
+- 访问 `/api/v1/version`，应看到 `version` 为 `cloud-reader-v1.2.2`。
 
 版本接口仅确认部署版本，不能代替数据库、登录和上传功能检查。
 
@@ -161,12 +159,12 @@ Cloud-Reader.v1.2.1/
 
 入口：**设置与数据 → 云服务**，或直接访问 `/cloud`。
 
-| 服务 | Pages 项目中需配置 | 接入说明 |
-| --- | --- | --- |
-| OneDrive | `ONEDRIVE_CLIENT_ID`、`ONEDRIVE_CLIENT_SECRET` | 注册 Microsoft OAuth 应用后授权 |
-| Google Drive | `GOOGLE_CLIENT_ID`、`GOOGLE_CLIENT_SECRET` | 启用 Drive API，创建 Web OAuth 客户端 |
-| WebDAV / Nextcloud / ownCloud | `WEBDAV_ALLOWED_HOSTS` | 在网页填写 HTTPS WebDAV 地址与凭据 |
-| 百度网盘 / 阿里云盘 | `WEBDAV_ALLOWED_HOSTS` | 先准备挂载对应网盘的可写 WebDAV 服务 |
+| 服务                            | Pages 项目中需配置                                  | 接入说明                          |
+| ----------------------------- | --------------------------------------------- | ----------------------------- |
+| OneDrive                      | `ONEDRIVE_CLIENT_ID`、`ONEDRIVE_CLIENT_SECRET` | 注册 Microsoft OAuth 应用后授权      |
+| Google Drive                  | `GOOGLE_CLIENT_ID`、`GOOGLE_CLIENT_SECRET`     | 启用 Drive API，创建 Web OAuth 客户端 |
+| WebDAV / Nextcloud / ownCloud | `WEBDAV_ALLOWED_HOSTS`                        | 在网页填写 HTTPS WebDAV 地址与凭据      |
+| 百度网盘 / 阿里云盘                   | `WEBDAV_ALLOWED_HOSTS`                        | 先准备挂载对应网盘的可写 WebDAV 服务        |
 
 OAuth 客户端密钥应保存为 Secret，配置更改后重新部署。回调地址必须与实际站点域名完全一致：
 
@@ -198,7 +196,7 @@ WEBDAV_ALLOWED_HOSTS=dav.example.com,cloud.example.com
 3. 保留原 D1、R2、`DEPLOY_KEY` 和 `PASSWORD_PEPPER`，不要重建数据库或执行旧版迁移 SQL。
 4. 部署成功后刷新网页，并通过版本接口确认更新。
 
-从 v1.2.0 升级到 v1.2.1 不需要清除浏览器缓存、删除书籍或重置阅读记录。
+从 v1.2.0 / v1.2.1 升级到 v1.2.2 不需要清除浏览器缓存、删除书籍或重置阅读记录。
 
 从需要离线口令的旧版升级时，已同步的数据登录后可重新载入。如果有未同步的旧本地数据，可在设置中的“导入旧版未同步的本地数据”中输入原口令完成一次迁移；原缓存会保留。
 
@@ -216,13 +214,13 @@ WEBDAV_ALLOWED_HOSTS=dav.example.com,cloud.example.com
 
 确认 `DB` 绑定到可用的 D1 数据库。新部署使用空数据库即可；旧站点保留原数据库。查看 Cloudflare 部署及运行日志，不要通过清空数据库解决问题。
 
-### 初始化密钥不正确
+### 管理员账号或密码未配置
 
-填写站点部署时自己设置的 `DEPLOY_KEY`，不是 Cloudflare 密码、API Token 或管理员密码。确认变量配置属于当前部署环境。
+在 Pages 的生产环境设置 `ADMIN_USERNAME` 和 Secret `ADMIN_PASSWORD`，保存并重新部署。密码按原值使用，不会删除前后空格。`DEPLOY_KEY` 仍须保留，但不再是网页初始化凭据。
 
 ### TXT 打开白屏
 
-确认部署的是 v1.2.1 或包含同一缓存修复的后续版本，然后刷新页面。v1.2.1 统一了整套静态资源的缓存地址，修复了旧模块混用导致的白屏。如果仍失败，请记录书籍格式、大小及浏览器报错以便排查。
+确认部署的是 v1.2.2 或包含同一缓存修复的后续版本，然后刷新页面。v1.2.2 统一了整套静态资源的缓存地址，修复了旧模块混用导致的白屏。如果仍失败，请记录书籍格式、大小及浏览器报错以便排查。
 
 ### 关闭整本下载后，EPUB / PDF 仍然下载文件
 
